@@ -59,7 +59,16 @@ int main(void)
          printHistory(history);
       }
      //check for !x commands
-     if(strlen(args[0])==3 && args[0][0] == '!'){
+     if(strcmp(args[0], "!10\n") == 0 || strcmp(args[0], "!10") == 0){
+        if(history[9].pid == -1){
+	     printf("There are less than 10 commands in history.\n");
+	   }
+	   else{
+	     strcpy(rawInput, history[9].args);
+	     goto command;
+	   }
+     }
+     else  if(strlen(args[0])==3 && args[0][0] == '!'){
        if(history[0].pid == -1){
 	 printf("No commands in history.\n");
        }
