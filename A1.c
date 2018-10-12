@@ -23,6 +23,7 @@ int main(void)
   int should_run = 1;
   char rawInput[MAX_LINE + 1]; //for the input
   char* token;
+  char command[MAX_LINE + 1];
   int i = 0;
   int should_wait = 0;
   while(should_run){
@@ -33,6 +34,7 @@ int main(void)
     
     //Read the input
     fgets(rawInput, MAX_LINE+1, stdin);
+    strcpy(command, rawInput);
     //Tokenize the string and store in args
     token = strtok(rawInput, " ");
     while(token){
@@ -40,6 +42,8 @@ int main(void)
       i++;
       token = strtok(NULL, " ");
     }
+    //execvp() requires a null terminated list of args
+    args[i] = NULL;
     //chekc if command was exit
     if(strcmp(args[0], "exit\n") == 0 || strcmp(args[0], "exit") == 0){
 	should_run = 0;
@@ -61,8 +65,9 @@ int main(void)
     }
     else if (pid == 0){
       //child
-      addToHistory(history, rawInput, getpid());
+      addToHistory(history, command, getpid());
       execvp(args[0], args);
+      exit(0);
     }
     else{
       //parent
@@ -81,19 +86,24 @@ void addToHistory(struct pastArg history[10], char args[MAX_LINE +1], int pid){
   }
   struct pastArg argument;
   argument.pid = pid;
+  i = 0;		   
   strcpy(argument.args, args);
   history[0] = argument;
 }
 
 void printHistory(struct pastArg history[10]){
   char *prompt = {"ID\tPID\tCommand"};
+  char *out;
   int i = 0;
   printf("%s\n", prompt);
   while(i < 10){
     if(history[i].args != NULL){
-      printf("%d\t%d\t%s\n",i+1, history[i].pid, history[i].args); 
+      printf("%d\t%d\t%s\n",i+1, history[i].pid, history[i].args);
+      i++;
     }
     else{
-      break;
+      goto end;
+    }
   }
+ end: return;
 }
