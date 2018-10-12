@@ -19,7 +19,7 @@ int main(void)
 {
   pid_t pid;
   char *args[MAX_LINE/2 + 1];
-  struct pastArg history[10]; 
+  struct pastArg history[10] = {{-1, "",},{-1, "",},{-1, "",},{-1, "",},{-1, "",},{-1, "",},{-1, "",},{-1, "",},{-1, "",},{-1, "",}};
   int should_run = 1;
   char rawInput[MAX_LINE + 1]; //for the input
   char* token;
@@ -48,32 +48,32 @@ int main(void)
     if(strcmp(args[0], "exit\n") == 0 || strcmp(args[0], "exit") == 0){
 	should_run = 0;
       }
-    //check if command was history
-    if(strcmp(args[0], "history\n") == 0 || strcmp(args[0], "history") == 0){
-      printHistory(history);
-    }
+     
     //check if last argument was &
     if(strcmp(args[i-1], "&") != 0){
       should_wait = 1;
       }
-    
-    //fork child process
-    pid = fork();
-    if(pid == -1){
-      //error
-      exit(EXIT_FAILURE);
-    }
-    else if (pid == 0){
-      //child
-      addToHistory(history, command, getpid());
-      execvp(args[0], args);
-      exit(0);
-    }
-    else{
-      //parent
-      if(should_wait){
-	wait(NULL);
+    //check if command was history
+     if(strcmp(args[0], "history\n") == 0 || strcmp(args[0], "history") == 0){
+         printHistory(history);
+      }
+     //fork child process
+     pid = fork();
+     if(pid == -1){
+       //error
+       exit(EXIT_FAILURE);
+     }
+     else if (pid == 0){
+       //child
+	 execvp(args[0], args);
+	 exit(0);
+     }
+     else{
+       //parent
+       if(should_wait){
+	 wait(NULL);
        }
+       addToHistory(history, command, pid); //pid is the pid of child
     }
   }
   return 0;
@@ -85,8 +85,7 @@ void addToHistory(struct pastArg history[10], char args[MAX_LINE +1], int pid){
     i--;
   }
   struct pastArg argument;
-  argument.pid = pid;
-  i = 0;		   
+  argument.pid = pid;	   
   strcpy(argument.args, args);
   history[0] = argument;
 }
@@ -97,13 +96,13 @@ void printHistory(struct pastArg history[10]){
   int i = 0;
   printf("%s\n", prompt);
   while(i < 10){
-    if(history[i].args != NULL){
+    if(history[i].pid != -1){
       printf("%d\t%d\t%s\n",i+1, history[i].pid, history[i].args);
       i++;
     }
     else{
-      goto end;
+      break;
     }
   }
- end: return;
+  return;
 }
