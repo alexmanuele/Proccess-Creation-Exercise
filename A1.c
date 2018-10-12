@@ -25,6 +25,7 @@ int main(void)
   char* token;
   char command[MAX_LINE + 1];
   int i = 0;
+  int j =0;
   int should_wait = 0;
   while(should_run){
     i = 0;
@@ -34,7 +35,7 @@ int main(void)
     
     //Read the input
     fgets(rawInput, MAX_LINE+1, stdin);
-    strcpy(command, rawInput);
+  command: strcpy(command, rawInput);
     //Tokenize the string and store in args
     token = strtok(rawInput, " ");
     while(token){
@@ -57,6 +58,59 @@ int main(void)
      if(strcmp(args[0], "history\n") == 0 || strcmp(args[0], "history") == 0){
          printHistory(history);
       }
+     //check for !x commands
+     if(strlen(args[0])==3 && args[0][0] == '!'){
+       if(history[0].pid == -1){
+	 printf("No commands in history.\n");
+       }
+       else{
+	 switch (args[0][1]){
+	     case '!':
+	       j = 0;
+	       break;
+	     case '1':
+	       j = 1;
+	       break;
+	     case '2':
+	       j = 1;
+	       break;
+	     case '3':
+	       j = 2;
+	       break;
+	     case '4':
+	       j = 3;
+	       break;
+	     case '5':
+	       j = 4;
+	       break;
+	     case '6':
+	       j = 5;
+	       break;
+	     case '7':
+	       j = 6;
+	       break;
+	     case '8':
+	       j = 7;
+	       break;
+	     case '9':
+	       j = 8;
+	       break;
+	     default:
+		 j = -1;
+		 printf("Invalid input\n");
+	      
+	   }
+	 if( j >= 0){
+	   if(history[j].pid == -1){
+	     printf("There are less than %d commands in history.\n", j+1);
+	   }
+	   else{
+	     strcpy(rawInput, history[j].args);
+	     goto command;
+	   }
+	 }
+       }
+     }
      //fork child process
      pid = fork();
      if(pid == -1){
@@ -94,15 +148,20 @@ void printHistory(struct pastArg history[10]){
   char *prompt = {"ID\tPID\tCommand"};
   char *out;
   int i = 0;
+  if(history[0].pid == -1){
+    printf("There are no commands in history.\n");
+    return;
+  }
   printf("%s\n", prompt);
   while(i < 10){
     if(history[i].pid != -1){
-      printf("%d\t%d\t%s\n",i+1, history[i].pid, history[i].args);
+      printf("%d\t%d\t%s",i+1, history[i].pid, history[i].args);
       i++;
     }
     else{
       break;
     }
   }
+  printf("\n");
   return;
 }
